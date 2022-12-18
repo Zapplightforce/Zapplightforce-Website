@@ -105,7 +105,7 @@ class CustomAuthController extends Controller
 
             Session::pull('TempUserEmail');
 
-            return view('auth.login')->with('success', 'You are now officially registered please log in with your credentials');
+            return redirect('login')->with('success', 'You are now officially registered please log in with your credentials');
         }
         else{
             return back()->with('fail', 'something went wrong');
@@ -171,6 +171,6 @@ class CustomAuthController extends Controller
 
         Session::pull('resetUser');
 
-        return view('auth.login')->with('success', 'password successfully resetted');
+        return redirect('login')->with('success', 'password successfully resetted');
     }
 }

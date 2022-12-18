@@ -16,6 +16,7 @@
                     <img src="/images/ZLF-Logo.png">
                 </figure>
                 <p class="title is-3">Registration</p>
+                <p class="subtitle is-6">You might want to use password managers</p>
                 <form action="{{route('register-user')}}" method="POST">
                     <input type="hidden" name="remember" value="true">
                     @csrf

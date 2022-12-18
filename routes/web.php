@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    redirect('/login');
+    abort(500);
 } );
 
 Route::post('/register-user', [CustomAuthController::class, 'registerUser'])->name('register-user');

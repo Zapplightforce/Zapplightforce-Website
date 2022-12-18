@@ -8,30 +8,23 @@ use Illuminate\Support\Facades\Session;
 
 class DashboardController extends Controller
 {
-    public function dashboard(){
+    public function home(){
 
         $data = array();
 
         if(Session::has('loginId')){
             $data = User::where('id', '=', Session::get('loginId'))->first();
         }
-        return view('dashboard.main', compact('data'));
+        return view('dashboard.home', compact('data'));
     }
 
-    public function profile(){
+    public function blog(){
+
         $data = array();
 
         if(Session::has('loginId')){
             $data = User::where('id', '=', Session::get('loginId'))->first();
         }
-        return view('dashboard.profile', compact('data'));
-    }
-    public function board(){
-        $data = array();
-
-        if(Session::has('loginId')){
-            $data = User::where('id', '=', Session::get('loginId'))->first();
-        }
-        return view('dashboard.board', compact('data'));
+        return view('dashboard.blog.index', compact('data'));
     }
 }

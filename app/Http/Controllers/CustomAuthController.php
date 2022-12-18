@@ -24,10 +24,6 @@ class CustomAuthController extends Controller
         return view('auth.registration');
     }
 
-    public function pwdReset(){
-        return view('auth.pwdReset');
-    }
-
     public function registerUser() {
 
         request()->validate([
@@ -46,9 +42,12 @@ class CustomAuthController extends Controller
         $user->email = request('email');
         $user->password = Hash::make(request('password'));
 
+
+
+        Session::put('TempUserEmail', request('email'));
         $user->save();
 
-        return redirect('login')->with('success', 'Your are registered. Please login with your email and password');
+            return view('auth.securityQuestion');
     }
 
     public function loginUser(Request $request)
@@ -73,7 +72,7 @@ class CustomAuthController extends Controller
                         }
                             RateLimiter::clear($key);
 
-                        return redirect('dashboard');
+                        return redirect('home');
                 }else{
                     return back()->with('fail', 'Incorrect password');
                 }
@@ -91,5 +90,87 @@ class CustomAuthController extends Controller
         }
     }
 
+    public function submitQuestion(Request $request){
+        if(Session::has('TempUserEmail')){
+            $email = Session::get('TempUserEmail');
+            $user = User::where('email', $email);
+            $request->validate([
+                'question' => 'required',
+                'answer' => 'required'
+            ]);
+            $user->update([
+                'question' => $request->question,
+                'answer' => Hash::make(request('answer')),
+            ]);
 
+            Session::pull('TempUserEmail');
+
+            return view('auth.login')->with('success', 'You are now officially registered please log in with your credentials');
+        }
+        else{
+            return back()->with('fail', 'something went wrong');
+      }
+    }
+
+    public function pwdResetView(){
+        return view('auth.resetForm');
+    }
+
+    public function askSecurityQuestion(Request $request){
+        request()->validate([
+            'email'=>'required'
+        ]);
+
+
+
+        $user = User::get()->where('email', $request->email)->first();
+
+        if ($user){
+            Session::put('resetUser', $user->email);
+
+            $question = $user->question;
+
+            return view('auth.askQuestion', compact('question'));
+        }
+    }
+
+    public function newPasswordView(Request $request){
+
+        $request->validate([
+            'answer'=>'required'
+        ], [
+            'answer.required'=>'make sure your spelling is correct'
+        ]);
+
+        $user = User::get()->where('email', Session::get('resetUser'))->first();
+
+        if (Hash::check($request->answer, $user->answer)){
+            $email = $user->email;
+
+            return view('auth.newPwd', compact('email'));
+        }
+        else{
+            return back()->with('fail', 'wrong answer. Make sure that your spelling is correct');
+        }
+
+    }
+
+    public function updatePassword(Request $request){
+        $request->validate([
+            'password' => ['required',  Password::defaults()->symbols()->mixedCase()->letters()->numbers()],
+            'confirm-password'=> ['required', 'same:password']
+        ]);
+
+        $password = $request->password;
+
+        $user = User::get()->where('email', Session::get('resetUser'))->first();
+
+        $user->update([
+            'password'=> Hash::make($password)
+        ]);
+
+        Session::pull('resetUser');
+
+        return view('auth.login')->with('success', 'password successfully resetted');
+    }
 }
